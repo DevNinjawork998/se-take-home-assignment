@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+.order-card {
+  @apply bg-white rounded-lg shadow-sm border-2 p-4 transition-all duration-200;
+}
+
+.order-card.vip {
+  @apply border-mcdonald-yellow bg-yellow-50;
+}
+
+.order-card.normal {
+  @apply border-gray-200;
+}
+
+.order-card.processing {
+  @apply border-blue-400 bg-blue-50;
+}
+
+.order-card.complete {
+  @apply border-mcdonald-green bg-green-50;
+}
+
+.bot-card {
+  @apply bg-white rounded-lg shadow-sm border-2 p-4 transition-all duration-200;
+}
+
+.bot-card.idle {
+  @apply border-gray-300 bg-gray-50;
+}
+
+.bot-card.processing {
+  @apply border-blue-400 bg-blue-50;
+}
+
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2;
+}
+
+.progress-fill {
+  @apply bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-linear;
+}

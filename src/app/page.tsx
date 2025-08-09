@@ -138,10 +138,14 @@ export default function HomePage() {
           <h2 className="text-xl font-semibold mb-4 text-orange-600">
             PENDING ORDERS ({pendingOrders.length + processingOrders.length})
           </h2>
-          <div className="space-y-3 min-h-[200px]">
+          <div 
+            data-testid="pending-orders"
+            className="space-y-3 min-h-[200px]"
+          >
             {[...pendingOrders, ...processingOrders].map((order) => (
               <div
                 key={order.id}
+                data-testid={`order-${order.id}`}
                 className={`p-3 rounded-lg border-2 ${
                   order.type === "VIP"
                     ? "border-yellow-400 bg-yellow-50"
@@ -164,6 +168,9 @@ export default function HomePage() {
                     {order.status}
                   </span>
                 </div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Type: {order.type}
+                </div>
                 {order.assignedBotId && (
                   <div className="text-sm text-gray-600 mt-1">
                     Assigned to: {order.assignedBotId}
@@ -184,10 +191,14 @@ export default function HomePage() {
           <h2 className="text-xl font-semibold mb-4 text-green-600">
             COMPLETE ORDERS ({completeOrders.length})
           </h2>
-          <div className="space-y-3 min-h-[200px] max-h-[400px] overflow-y-auto">
+          <div 
+            data-testid="complete-orders"
+            className="space-y-3 min-h-[200px] max-h-[400px] overflow-y-auto"
+          >
             {completeOrders.map((order) => (
               <div
                 key={order.id}
+                data-testid={`order-${order.id}`}
                 className="p-3 rounded-lg border-2 border-green-400 bg-green-50"
               >
                 <div className="flex justify-between items-center">
@@ -195,6 +206,9 @@ export default function HomePage() {
                   <span className="px-2 py-1 rounded text-sm bg-green-200 text-green-800">
                     ✓ COMPLETE
                   </span>
+                </div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Type: {order.type}
                 </div>
               </div>
             ))}
@@ -212,7 +226,10 @@ export default function HomePage() {
         <h2 className="text-xl font-semibold mb-4">
           ACTIVE BOTS ({appState.bots.length})
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div 
+          data-testid="bot-status"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
           {appState.bots.map((bot) => (
             <div
               key={bot.id}

@@ -6,14 +6,16 @@ export class OrderQueue {
   addOrder(order: Order): void {
     // VIP orders go to the front of the queue, but behind other VIP orders
     if (order.type === OrderType.VIP) {
-      let lastVipIndex = -1;
-      for (let i = this.orders.length - 1; i >= 0; i--) {
+      // Find the position after the last VIP order
+      let insertIndex = 0;
+      for (let i = 0; i < this.orders.length; i++) {
         if (this.orders[i].type === OrderType.VIP) {
-          lastVipIndex = i;
-          break;
+          insertIndex = i + 1;
+        } else {
+          break; // Stop at first non-VIP order
         }
       }
-      this.orders.splice(lastVipIndex + 1, 0, order);
+      this.orders.splice(insertIndex, 0, order);
     } else {
       // Normal orders go to the end
       this.orders.push(order);
@@ -35,7 +37,15 @@ export class OrderQueue {
   }
 
   getPendingOrders(): Order[] {
-    return this.orders.filter((o: Order) => o.status === OrderStatus.PENDING);
+    const pendingOrders = this.orders.filter(
+      (o: Order) => o.status === OrderStatus.PENDING
+    );
+    // Ensure VIP orders are first, then normal orders, maintaining insertion order within each type
+    return pendingOrders.sort((a, b) => {
+      if (a.type === OrderType.VIP && b.type === OrderType.NORMAL) return -1;
+      if (a.type === OrderType.NORMAL && b.type === OrderType.VIP) return 1;
+      return a.orderNumber - b.orderNumber; // Maintain order number sequence within same type
+    });
   }
 
   getProcessingOrders(): Order[] {

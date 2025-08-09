@@ -22,6 +22,11 @@ export class AppStateManager {
       nextOrderNumber: 1,
     };
     this.orderQueue = new OrderQueue();
+
+    // Check for stuck orders on initialization (e.g., after server restart)
+    setTimeout(() => {
+      this.recoverStuckOrders();
+    }, 1000);
   }
 
   static getInstance(): AppStateManager {
@@ -89,12 +94,15 @@ export class AppStateManager {
 
     // If bot was processing an order, return it to pending
     if (bot.currentOrder) {
-      this.orderQueue.updateOrderStatus(
-        bot.currentOrder.id,
-        OrderStatus.PENDING
+      const order = this.state.orders.find(
+        (o) => o.id === bot.currentOrder!.id
       );
-      bot.currentOrder.assignedBotId = undefined;
-      bot.currentOrder.processingStartedAt = undefined;
+      if (order) {
+        order.status = OrderStatus.PENDING;
+        order.assignedBotId = undefined;
+        order.processingStartedAt = undefined;
+        this.orderQueue.updateOrderStatus(order.id, OrderStatus.PENDING);
+      }
     }
 
     // Clear any timer for this bot
@@ -112,11 +120,15 @@ export class AppStateManager {
     const idleBots = this.state.bots.filter(
       (bot) => bot.status === BotStatus.IDLE
     );
-    const nextOrder = this.orderQueue.getNextPendingOrder();
+    const pendingOrders = this.orderQueue.getPendingOrders();
 
-    if (idleBots.length > 0 && nextOrder) {
-      const bot = idleBots[0];
-      this.assignOrderToBot(bot, nextOrder);
+    let botIndex = 0;
+    for (const order of pendingOrders) {
+      if (botIndex >= idleBots.length) break;
+
+      const bot = idleBots[botIndex];
+      this.assignOrderToBot(bot, order);
+      botIndex++;
     }
   }
 
@@ -129,6 +141,7 @@ export class AppStateManager {
     order.assignedBotId = bot.id;
     order.processingStartedAt = new Date();
 
+    // Update order status but keep it in the state for display purposes
     this.orderQueue.updateOrderStatus(order.id, OrderStatus.PROCESSING);
 
     // Set timer for 10 seconds to complete the order
@@ -165,9 +178,7 @@ export class AppStateManager {
   }
 
   getPendingOrders(): Order[] {
-    return this.state.orders.filter(
-      (order) => order.status === OrderStatus.PENDING
-    );
+    return this.orderQueue.getPendingOrders();
   }
 
   getCompleteOrders(): Order[] {
@@ -177,8 +188,70 @@ export class AppStateManager {
   }
 
   getProcessingOrders(): Order[] {
-    return this.state.orders.filter(
-      (order) => order.status === OrderStatus.PROCESSING
-    );
+    return this.orderQueue.getProcessingOrders();
+  }
+
+  private recoverStuckOrders(): void {
+    const now = new Date();
+    const processingOrders = this.getProcessingOrders();
+
+    processingOrders.forEach((order) => {
+      if (order.processingStartedAt) {
+        const processingTime =
+          now.getTime() - new Date(order.processingStartedAt).getTime();
+
+        // If order has been processing for more than 12 seconds (buffer over the 10 second timer)
+        if (processingTime > 12000) {
+          console.log(
+            `Recovering stuck order ${order.id} after ${processingTime}ms`
+          );
+
+          // Find the bot and complete the order
+          const bot = this.state.bots.find((b) => b.id === order.assignedBotId);
+          if (bot && order.assignedBotId) {
+            this.completeOrder(order.assignedBotId, order.id);
+          }
+        } else {
+          // Order is still within normal processing time, recreate the timer
+          const remainingTime = 10000 - processingTime;
+          if (remainingTime > 0 && order.assignedBotId) {
+            console.log(
+              `Recreating timer for order ${order.id} with ${remainingTime}ms remaining`
+            );
+            const timer = setTimeout(() => {
+              this.completeOrder(order.assignedBotId!, order.id);
+            }, remainingTime);
+            this.botTimers.set(order.assignedBotId, timer);
+          }
+        }
+      }
+    });
+  }
+
+  // Reset method for testing purposes
+  reset(): void {
+    // Clear all timers
+    this.botTimers.forEach((timer) => clearTimeout(timer));
+    this.botTimers.clear();
+
+    // Reset state to initial values
+    this.state = {
+      orders: [],
+      bots: [],
+      nextOrderNumber: 1,
+    };
+
+    // Reset order queue
+    this.orderQueue = new OrderQueue();
+
+    // Notify listeners of state change
+    this.notify();
+  }
+
+  // Static method to reset the singleton instance
+  static resetInstance(): void {
+    if (AppStateManager.instance) {
+      AppStateManager.instance.reset();
+    }
   }
 }

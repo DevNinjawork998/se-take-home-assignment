@@ -9,19 +9,11 @@ export async function GET() {
   return NextResponse.json(state);
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { type } = await request.json();
-
-    if (!type || !Object.values(OrderType).includes(type)) {
-      return NextResponse.json(
-        { error: "Invalid order type" },
-        { status: 400 }
-      );
-    }
-
     const order = appState.createOrder(type);
-    return NextResponse.json(order, { status: 201 });
+    return NextResponse.json(order);
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to create order" },

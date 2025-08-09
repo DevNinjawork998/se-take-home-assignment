@@ -11,12 +11,9 @@ export async function GET() {
 export async function POST() {
   try {
     const bot = appState.addBot();
-    return NextResponse.json(bot, { status: 201 });
+    return NextResponse.json(bot);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to create bot" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to add bot" }, { status: 500 });
   }
 }
 

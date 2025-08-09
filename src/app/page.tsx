@@ -138,10 +138,7 @@ export default function HomePage() {
           <h2 className="text-xl font-semibold mb-4 text-orange-600">
             PENDING ORDERS ({pendingOrders.length + processingOrders.length})
           </h2>
-          <div 
-            data-testid="pending-orders"
-            className="space-y-3 min-h-[200px]"
-          >
+          <div data-testid="pending-orders" className="space-y-3 min-h-[200px]">
             {[...pendingOrders, ...processingOrders].map((order) => (
               <div
                 key={order.id}
@@ -191,7 +188,7 @@ export default function HomePage() {
           <h2 className="text-xl font-semibold mb-4 text-green-600">
             COMPLETE ORDERS ({completeOrders.length})
           </h2>
-          <div 
+          <div
             data-testid="complete-orders"
             className="space-y-3 min-h-[200px] max-h-[400px] overflow-y-auto"
           >
@@ -226,7 +223,7 @@ export default function HomePage() {
         <h2 className="text-xl font-semibold mb-4">
           ACTIVE BOTS ({appState.bots.length})
         </h2>
-        <div 
+        <div
           data-testid="bot-status"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         >
